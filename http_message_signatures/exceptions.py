@@ -4,3 +4,7 @@ class HTTPMessageSignaturesException(Exception):
 
 class InvalidSignature(Exception):
     "Class for exceptions raised in the course of verifying an HTTP message signature"
+
+
+class SigningError(Exception):
+    "Error raised while attempting to sign message"
