@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 from typing import Any, Dict, List, Sequence, Tuple, Type
 
-import exceptions
+import http_message_signatures.exceptions
 import http_sfv
 
 from .algorithms import HTTPSignatureAlgorithm, signature_algorithms
@@ -91,7 +91,6 @@ class HTTPMessageSigner(HTTPSignatureHandler):
         created: datetime.datetime = None,
         expires: datetime.datetime = None,
         nonce: str = None,
-        label: str = None,
         include_alg: bool = True,
         covered_component_ids: Sequence[str] = ("@method", "@authority", "@target-uri"),
     ):
@@ -113,14 +112,26 @@ class HTTPMessageSigner(HTTPSignatureHandler):
         )
         return sig_base, sig_params_node, _
 
-    def sign(self, message, key_id: str, label: str = None):
-        sig_base, sig_params_node, _ = self.get_signature_base(message, key_id)
+    def sign(
+        self,
+        message,
+        *,
+        key_id: str,
+        created: datetime.datetime = None,
+        expires: datetime.datetime = None,
+        nonce: str = None,
+        label: str = None,
+        include_alg: bool = True,
+        covered_component_ids: Sequence[str] = ("@method", "@authority", "@target-uri")
+    ):
         if self.key_resolver:
             # when the private key is available
             key = self.key_resolver.resolve_private_key(key_id)
             signer = self.signature_algorithm(private_key=key)
+            sig_base, sig_params_node, _ = self.get_signature_base(message, key_id=key_id)
             signature = signer.sign(sig_base.encode())
         else:
+            sig_base, sig_params_node, _ = self.get_signature_base(message, key_id=key_id)
             # this code path uses the TPM to sign
             with tempfile.NamedTemporaryFile(mode="wb", delete=False) as digest_file:
                 digest_file.write(hashlib.sha256(message.encode("ascii")).digest())
@@ -133,11 +144,10 @@ class HTTPMessageSigner(HTTPSignatureHandler):
                 )
             output = subprocess.run(shlex.split(sign_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if output.stderr:
-                raise exceptions.SigningError(message=output.stderr)
+                raise http_message_signatures.exceptions.SigningError(message=output.stderr)
             else:
                 with open(signature_file.name, "rb") as f:
                     signature = f.read()
-
         sig_label = self.DEFAULT_SIGNATURE_LABEL
         if label is not None:
             sig_label = label
