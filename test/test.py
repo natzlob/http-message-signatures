@@ -13,11 +13,11 @@ from cryptography.hazmat.primitives.serialization import (
     load_pem_private_key,
     load_pem_public_key,
 )
+from http_message_signatures.resolvers import HTTPSignatureKeyResolver
 from http_message_signatures.signatures import (  # noqa
     HTTPMessageSigner,
     HTTPMessageVerifier,
     HTTPSignatureComponentResolver,
-    HTTPSignatureKeyResolver,
     InvalidSignature,
 )
 from http_message_signatures.algorithms import (  # noqa
