@@ -86,12 +86,12 @@ class HTTPMessageSigner(HTTPSignatureHandler):
         self,
         message,
         *,
-        key_id: str,
-        created: datetime.datetime = None,
-        expires: datetime.datetime = None,
-        nonce: str = None,
-        include_alg: bool = True,
-        covered_component_ids: Sequence[str] = ("@method", "@authority", "@target-uri"),
+        key_id,
+        created=None,
+        expires=None,
+        nonce=None,
+        include_alg=True,
+        covered_component_ids=("@method", "@authority", "@target-uri"),
     ):
         # TODO: Accept-Signature autonegotiation
         if created is None:
@@ -118,12 +118,12 @@ class HTTPMessageSigner(HTTPSignatureHandler):
         message,
         *,
         key_id: str,
-        created: datetime.datetime = None,
-        expires: datetime.datetime = None,
-        nonce: str = None,
-        label: str = None,
-        include_alg: bool = True,
-        covered_component_ids: Sequence[str] = ("@method", "@authority", "@target-uri")
+        created=None,
+        expires=None,
+        nonce=None,
+        label=None,
+        include_alg=True,
+        covered_component_ids=("@method", "@authority", "@target-uri")
     ):
         if (hasattr(self, 'key_resolver') and hasattr(self.key_resolver, 'resolve_private_key')):
             print('this means key_resolver in not None')
@@ -195,7 +195,7 @@ class HTTPMessageVerifier(HTTPSignatureHandler):
                 raise InvalidSignature(f"Signature age exceeds maximum allowable age {max_age}")
 
     def verify(
-        self, message, *, max_age: datetime.timedelta = datetime.timedelta(days=1), key_file: str = None
+        self, message, *, max_age=datetime.timedelta(days=1), key_file=None
     ) -> List[VerifyResult]:
         sig_inputs = self._parse_dict_header("Signature-Input", message.headers)
         if len(sig_inputs) != 1:
