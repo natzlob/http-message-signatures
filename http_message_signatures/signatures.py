@@ -146,7 +146,7 @@ class HTTPMessageSigner(HTTPSignatureHandler):
                 )
             output = subprocess.run(shlex.split(sign_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if output.stderr:
-                raise http_message_signatures.exceptions.SigningError(message=output.stderr)
+                raise http_message_signatures.exceptions.SigningError(output.stderr)
             else:
                 with open(signature_file.name, "rb") as f:
                     signature = f.read()
