@@ -117,71 +117,6 @@ class TestHTTPMessageSignatures(unittest.TestCase):
         )
         # self.verify(verifier, self.test_request)
 
-    # def test_http_message_signatures_B22(self):
-    #     signer = HTTPMessageSigner(signature_algorithm=RSA_PSS_SHA512, key_resolver=self.key_resolver)
-    #     signer.sign(
-    #         self.test_request,
-    #         key_id="test-key-rsa-pss",
-    #         covered_component_ids=("@authority", "content-digest"),
-    #         created=datetime.fromtimestamp(1618884473),
-    #         label="sig-b22",
-    #         include_alg=False,
-    #     )
-    #     self.assertEqual(
-    #         self.test_request.headers["Signature-Input"],
-    #         'sig-b22=("@authority" "content-digest");created=1618884473;keyid="test-key-rsa-pss"',
-    #     )
-    #     verifier = HTTPMessageVerifier(signature_algorithm=RSA_PSS_SHA512, key_resolver=self.key_resolver)
-    #     self.verify(verifier, self.test_request)  # Non-deterministic signing algorithm
-    #     self.test_request.headers["Signature"] = (
-    #         "sig-b22=:Fee1uy9YGZq5UUwwYU6vz4dZNvfw3GYrFl1L6YlVIyUMuWs"
-    #         "wWDNSvql4dVtSeidYjYZUm7SBCENIb5KYy2ByoC3bI+7gydd2i4OAT5lyDtmeapnA"
-    #         "a8uP/b9xUpg+VSPElbBs6JWBIQsd+nMdHDe+ls/IwVMwXktC37SqsnbNyhNp6kcvc"
-    #         "WpevjzFcD2VqdZleUz4jN7P+W5A3wHiMGfIjIWn36KXNB+RKyrlGnIS8yaBBrom5r"
-    #         "cZWLrLbtg6VlrH1+/07RV+kgTh/l10h8qgpl9zQHu7mWbDKTq0tJ8K4ywcPoC4s2I"
-    #         "4rU88jzDKDGdTTQFZoTVZxZmuTM1FvHfzIw==:"
-    #     )
-    #     self.verify(verifier, self.test_request)
-
-    # def test_http_message_signatures_B23(self):
-    #     signer = HTTPMessageSigner(signature_algorithm=RSA_PSS_SHA512, key_resolver=self.key_resolver)
-    #     signer.sign(
-    #         self.test_request,
-    #         key_id="test-key-rsa-pss",
-    #         covered_component_ids=(
-    #             "date",
-    #             "@method",
-    #             "@path",
-    #             "@query",
-    #             "@authority",
-    #             "content-type",
-    #             "content-digest",
-    #             "content-length",
-    #         ),
-    #         created=datetime.fromtimestamp(1618884473),
-    #         label="sig-b23",
-    #         include_alg=False,
-    #     )
-    #     self.assertEqual(
-    #         self.test_request.headers["Signature-Input"],
-    #         (
-    #             "sig-b23="
-    #             '("date" "@method" "@path" "@query" "@authority" "content-type" "content-digest" "content-length")'
-    #             ';created=1618884473;keyid="test-key-rsa-pss"'
-    #         ),
-    #     )
-    #     verifier = HTTPMessageVerifier(signature_algorithm=RSA_PSS_SHA512, key_resolver=self.key_resolver)
-    #     self.verify(verifier, self.test_request)
-    #     self.test_request.headers["Signature"] = (
-    #         "sig-b23=:bbN8oArOxYoyylQQUU6QYwrTuaxLwjAC9fbY2F6SVWvh0yB"
-    #         "iMIRGOnMYwZ/5MR6fb0Kh1rIRASVxFkeGt683+qRpRRU5p2voTp768ZrCUb38K0fU"
-    #         "xN0O0iC59DzYx8DFll5GmydPxSmme9v6ULbMFkl+V5B1TP/yPViV7KsLNmvKiLJH1"
-    #         "pFkh/aYA2HXXZzNBXmIkoQoLd7YfW91kE9o/CCoC1xMy7JA1ipwvKvfrs65ldmlu9"
-    #         "bpG6A9BmzhuzF8Eim5f8ui9eH8LZH896+QIF61ka39VBrohr9iyMUJpvRX2Zbhl5Z"
-    #         "JzSRxpJyoEZAFL2FUo5fTIztsDZKEgM4cUA==:"
-    #     )
-    #     self.verify(verifier, self.test_request)
-
     def test_http_message_signatures_B24(self):
         signer = HTTPMessageSigner(signature_algorithm=ECDSA_P256_SHA256, key_resolver=MyHTTPSignatureKeyResolver())
         signer.sign(
@@ -195,8 +130,8 @@ class TestHTTPMessageSignatures(unittest.TestCase):
         self.assertEqual(
             self.test_response.headers["Signature-Input"],
             (
-                'sig-b24=("@status" "content-type" "content-digest" "content-length");'
-                'created=1618884473;keyid="test-key-ecc-p256"'
+                'sig-b24=("@method" "@authority" "@target-uri");created=1668514729);'
+                'keyid="test-key-ecc-p256";alg="ecdsa-p256-sha256"'
             ),
         )
         # Non-deterministic signing algorithm
@@ -220,7 +155,8 @@ class TestHTTPMessageSignatures(unittest.TestCase):
         )
         self.assertEqual(
             self.test_request.headers["Signature-Input"],
-            'sig-b25=("date" "@authority" "content-type");created=1618884473;keyid="test-shared-secret"',
+            'sig-b25=("@method" "@authority" "@target-uri");created=1668514729;'
+            'keyid="test-shared-secret";alg="hmac-sha256"',
         )
         self.assertEqual(
             self.test_request.headers["Signature"], "sig-b25=:pxcQw6G3AjtMBQjwo8XzkZf/bws5LelbaMk5rGIGtE8=:"
@@ -241,8 +177,7 @@ class TestHTTPMessageSignatures(unittest.TestCase):
         self.assertEqual(
             self.test_request.headers["Signature-Input"],
             (
-                'sig-b26=("date" "@method" "@path" "@authority" "content-type" "content-length");'
-                'created=1618884473;keyid="test-key-ed25519"'
+                'sig-b26=("@method" "@authority" "@target-uri");created=1668514729;keyid="test-key-ed25519";alg="ed25519"'
             ),
         )
         signature = "sig-b26=:wqcAqbmYJ2ji2glfAMaRy4gruYYnx2nEFN2HN6jrnDnQCK1u02Gb04v9EDgwUPiu4A0w6vuQv5lIp5WPpBKRCw==:"
@@ -272,8 +207,8 @@ class TestHTTPMessageSignatures(unittest.TestCase):
         self.assertEqual(
             self.test_request.headers["Signature-Input"],
             (
-                'pyhms=("date" "@authority" "content-type" "@query-params";name="Pet");'
-                'created=1618884473;keyid="test-shared-secret";alg="hmac-sha256"'
+                'pyhms=("@method" "@authority" "@target-uri");created=1668514729;'
+                'keyid="test-shared-secret";alg="hmac-sha256"'
             ),
         )
         self.assertEqual(self.test_request.headers["Signature"], "pyhms=:LOYhEJpBn34v3KohQBFl5qSy93haFd3+Ka9wwOmKeN0=:")
