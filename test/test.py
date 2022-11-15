@@ -177,7 +177,8 @@ class TestHTTPMessageSignatures(unittest.TestCase):
         self.assertEqual(
             self.test_request.headers["Signature-Input"],
             (
-                'sig-b26=("@method" "@authority" "@target-uri");created=1668514729;keyid="test-key-ed25519";alg="ed25519"'
+                'sig-b26=("@method" "@authority" "@target-uri");created=1668514729;'
+                'keyid="test-key-ed25519";alg="ed25519"'
             ),
         )
         signature = "sig-b26=:wqcAqbmYJ2ji2glfAMaRy4gruYYnx2nEFN2HN6jrnDnQCK1u02Gb04v9EDgwUPiu4A0w6vuQv5lIp5WPpBKRCw==:"
