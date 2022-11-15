@@ -5,7 +5,7 @@ import logging
 import shlex
 import subprocess
 import tempfile
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Dict, List, Tuple
 
 import http_message_signatures.exceptions
 import http_sfv
