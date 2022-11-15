@@ -23,11 +23,12 @@ class HTTPSignatureHandler:
 
     def __init__(
         self,
-        signature_algorithm: type = Type[HTTPSignatureAlgorithm],
-        key_resolver: Optional[HTTPSignatureKeyResolver | None] = None,
-        component_resolver_class: type = HTTPSignatureComponentResolver,
-        tpm_device: type = str,
-        key_object_handle: type = str,
+        *,
+        signature_algorithm=None,
+        key_resolver=None,
+        component_resolver_class=None,
+        tpm_device=None,
+        key_object_handle=None,
     ):
         if signature_algorithm not in signature_algorithms.values():
             raise HTTPMessageSignaturesException(f"Unknown signature algorithm {signature_algorithm}")
