@@ -5,7 +5,7 @@ import logging
 import shlex
 import subprocess
 import tempfile
-from typing import Any, Dict, List, Sequence, Tuple, Type
+from typing import Any, Dict, List, Sequence, Tuple, Type, Optional
 
 import http_message_signatures.exceptions
 import http_sfv
@@ -23,9 +23,8 @@ class HTTPSignatureHandler:
 
     def __init__(
         self,
-        *,
         signature_algorithm: type = Type[HTTPSignatureAlgorithm],
-        key_resolver: type = HTTPSignatureKeyResolver,
+        key_resolver: Optional[HTTPSignatureKeyResolver | None] = None,
         component_resolver_class: type = HTTPSignatureComponentResolver,
         tpm_device: type = str,
         key_object_handle: type = str,
@@ -106,7 +105,9 @@ class HTTPMessageSigner(HTTPSignatureHandler):
             signature_params["nonce"] = nonce
         if include_alg:
             signature_params["alg"] = self.signature_algorithm.algorithm_id
+        print('before _parse_covered_component_ids')
         covered_component_nodes = self._parse_covered_component_ids(covered_component_ids)
+        print('just finished _parse_covered_component_ids')
         sig_base, sig_params_node, _ = self._build_signature_base(
             message, covered_component_ids=covered_component_nodes, signature_params=signature_params
         )
@@ -124,7 +125,8 @@ class HTTPMessageSigner(HTTPSignatureHandler):
         include_alg: bool = True,
         covered_component_ids: Sequence[str] = ("@method", "@authority", "@target-uri")
     ):
-        if self.key_resolver:
+        if (self.key_resolver and hasattr(self.key_resolver, 'resolve_private_key')):
+            print('this means key_resolver in not None')
             # when the private key is available
             key = self.key_resolver.resolve_private_key(key_id)
             signer = self.signature_algorithm(private_key=key)
