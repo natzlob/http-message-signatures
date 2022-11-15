@@ -5,14 +5,14 @@ import logging
 import shlex
 import subprocess
 import tempfile
-from typing import Any, Dict, List, Sequence, Tuple, Type, Optional
+from typing import Any, Dict, List, Sequence, Tuple
 
 import http_message_signatures.exceptions
 import http_sfv
 
-from .algorithms import HTTPSignatureAlgorithm, signature_algorithms
+from .algorithms import signature_algorithms
 from .exceptions import HTTPMessageSignaturesException, InvalidSignature
-from .resolvers import HTTPSignatureComponentResolver, HTTPSignatureKeyResolver
+from .resolvers import HTTPSignatureComponentResolver
 from .structures import VerifyResult
 
 logger = logging.getLogger(__name__)
@@ -26,17 +26,16 @@ class HTTPSignatureHandler:
         *,
         signature_algorithm=None,
         key_resolver=None,
-        component_resolver_class=None,
+        component_resolver_class=HTTPSignatureComponentResolver,
         tpm_device=None,
         key_object_handle=None,
     ):
         if signature_algorithm not in signature_algorithms.values():
             raise HTTPMessageSignaturesException(f"Unknown signature algorithm {signature_algorithm}")
         self.signature_algorithm = signature_algorithm
+        self.component_resolver_class = component_resolver_class
         if key_resolver:
             self.key_resolver = key_resolver
-        if component_resolver_class:
-            self.component_resolver_class = component_resolver_class
         if tpm_device:
             self.tpm_device = tpm_device
         if key_object_handle:
@@ -126,7 +125,7 @@ class HTTPMessageSigner(HTTPSignatureHandler):
         include_alg: bool = True,
         covered_component_ids: Sequence[str] = ("@method", "@authority", "@target-uri")
     ):
-        if (self.key_resolver and hasattr(self.key_resolver, 'resolve_private_key')):
+        if (hasattr(self, 'key_resolver') and hasattr(self.key_resolver, 'resolve_private_key')):
             print('this means key_resolver in not None')
             # when the private key is available
             key = self.key_resolver.resolve_private_key(key_id)
@@ -137,7 +136,7 @@ class HTTPMessageSigner(HTTPSignatureHandler):
             sig_base, sig_params_node, _ = self.get_signature_base(message, key_id=key_id)
             # this code path uses the TPM to sign
             with tempfile.NamedTemporaryFile(mode="wb", delete=False) as digest_file:
-                digest_file.write(hashlib.sha256(message.encode("ascii")).digest())
+                digest_file.write(hashlib.sha256(sig_base.encode("ascii")).digest())
             with tempfile.NamedTemporaryFile(mode="wb", delete=False) as signature_file:
                 sign_command = "tpm2_sign --tcti={} -c {} -g sha256 -d -f plain -o {} {}".format(
                     self.tpm_device,
